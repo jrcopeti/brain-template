@@ -4,8 +4,7 @@ A second brain for your coding agents: one git repo with the knowledge that appl
 project, read by every agent you run.
 
 [Telma](https://github.com/jrcopeti/telma) keeps a brain exactly like this one. It is adapted from
-[dmoka/brain-template](https://github.com/dmoka/brain-template) (from the AI Agent Engineer course,
-module 5), with these changes:
+[dmoka/brain-template](https://github.com/dmoka/brain-template), with these changes:
 
 - **Amended decisions.** When only part of a decision changes, the old one stays active and gains
   `amended_by:`; the new one gets `amends:`. Triage tests which case it is and never supersedes on a guess.
