@@ -22,16 +22,43 @@ def rel_links(text):
         yield target
 
 
-def frontmatter(text):
+def frontmatter_lines(text):
     m = re.match(r"^---[ \t]*\n(.*?)\n---[ \t]*(?:\n|$)", text, re.S)
-    if not m:
-        return {}
+    return m.group(1).splitlines() if m else []
+
+
+def unquote(v):
+    return v.strip().strip("'\"")
+
+
+def frontmatter(text):
     out = {}
-    for line in m.group(1).splitlines():
-        if ":" in line:
+    for line in frontmatter_lines(text):
+        if ":" in line and not line.startswith((" ", "-")):
             k, v = line.split(":", 1)
-            out[k.strip()] = v.strip().strip('"')
+            out[k.strip()] = unquote(v)
     return out
+
+
+def frontmatter_list(text, key):
+    """A front-matter value as a list: one value, `[a, b]`, or `- ` lines under the key."""
+    lines = frontmatter_lines(text)
+    for i, line in enumerate(lines):
+        if ":" not in line or line.split(":", 1)[0].strip() != key:
+            continue
+        v = line.split(":", 1)[1].strip()
+        if v.startswith("["):
+            return [unquote(x) for x in v.strip("[]").split(",") if x.strip()]
+        if v:
+            return [unquote(v)]
+        out = []
+        for more in lines[i + 1:]:
+            item = re.match(r"\s*-\s+(.+)", more)
+            if not item:
+                break
+            out.append(unquote(item.group(1)))
+        return out
+    return []
 
 
 def title_of(path):
@@ -105,18 +132,47 @@ def main():
             if not own and "sources/" not in text and not re.search(r"https?://", text):
                 errors.append(f"no source cited: {p.relative_to(root).as_posix()}")
 
-    # 4. decisions: a date, and superseded ones point to their replacement
+    # 4. decisions: a date; superseded or amended ones point to the newer decision, and it back
+    decisions = (root / "decisions").resolve()
+
+    def decision_path(v):
+        """A front-matter path as the decision file it names, from the brain's root or decisions/."""
+        for base in (root, decisions):
+            p = (base / v).resolve()
+            if p.is_file() and p.parent == decisions and p.suffix == ".md" and p.name != "README.md":
+                return "decisions/" + p.name
+        return None
+
+    pairs = {"superseded_by": "supersedes", "supersedes": "superseded_by", "amended_by": "amends", "amends": "amended_by"}
+    links, status = {}, {}
     for p in (root / "decisions").glob("*.md"):
         if p.name == "README.md":
             continue
-        fm = frontmatter(p.read_text(encoding="utf-8"))
+        text = p.read_text(encoding="utf-8")
         rel = p.relative_to(root).as_posix()
+        links[rel] = {k: frontmatter_list(text, k) for k in pairs}
+        fm = frontmatter(text)
+        status[rel] = fm.get("status")
         if not fm.get("date"):
             errors.append(f"decision without a date: {rel}")
-        if fm.get("status") == "superseded":
-            by = fm.get("superseded_by", "")
-            if not by or not (root / by).exists():
-                errors.append(f"superseded decision without an existing superseded_by: {rel}")
+        if status[rel] == "superseded" and not links[rel]["superseded_by"]:
+            errors.append(f"superseded decision without an existing superseded_by: {rel}")
+        if links[rel]["superseded_by"] and status[rel] != "superseded":
+            errors.append(f"superseded_by: {rel} is set, but its status isn't superseded")
+
+    def names_back(other, key, rel):
+        return rel in {decision_path(v) for v in links.get(other, {}).get(key, [])}
+
+    for rel, ln in links.items():
+        for key, back in pairs.items():
+            for v in ln[key]:
+                other = decision_path(v)
+                if other is None:
+                    errors.append(f"{key}: {rel} names {v}, which is no decision")
+                elif other == rel:
+                    errors.append(f"{key}: {rel} names itself")
+                elif not names_back(other, back, rel):
+                    errors.append(f"{key}: {rel} names {other}, which has no {back}: back")
 
     # 5. inbox should be empty after triage
     pending = [p.name for p in (root / "inbox").glob("*") if p.name not in ("README.md", ".gitkeep")]

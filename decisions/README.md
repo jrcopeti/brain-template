@@ -7,4 +7,11 @@ A decision is never deleted. When it changes:
 2. in the old file set `status: superseded` and `superseded_by: decisions/<new file>.md`,
 3. in the new file add `supersedes: decisions/<old file>.md`.
 
-The lint checks that every superseded decision points to a file that exists.
+When only **part** of a decision changes, amend it instead of superseding the whole file:
+1. write the new decision as a new file,
+2. leave the old file's status active, add `amended_by: decisions/<new file>.md`, and add one dated line under
+   the part that changed: `**Amended YYYY-MM-DD:** <the part> → a link to the new decision`,
+3. in the new file add `amends: decisions/<old file>.md`.
+
+The lint checks both directions: `superseded_by:` against `supersedes:`, `amended_by:` against `amends:`, each naming a decision
+file, and that a decision with `superseded_by:` has `status: superseded`.

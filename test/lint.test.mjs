@@ -71,3 +71,104 @@ test("another front-matter source value does not count", needsPython, () => {
   assert.equal(r.code, 1, r.out);
   assert.match(r.out, /no source cited: guidelines\/use-pnpm\.md/);
 });
+
+const decision = (fm) => `---\ndate: 2026-01-01\nsource: own\n${fm}\n---\n# D\n`;
+
+test("an amended decision and its amends: pointing at each other pass", needsPython, () => {
+  const r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: active\namended_by: decisions/2026-02-01-new.md"),
+    "decisions/2026-02-01-new.md": decision("status: active\namends: decisions/2026-01-01-old.md"),
+  }));
+  assert.equal(r.code, 0, r.out);
+  assert.match(r.out, /brain lint: clean/);
+});
+
+test("an amended_by that points to nothing, or to no decision, fails", needsPython, () => {
+  for (const by of ["decisions/2026-02-01-gone.md", "decisions", "notes/n.md"]) {
+    const r = lint(brain({
+      "decisions/2026-01-01-old.md": decision(`status: active\namended_by: ${by}`),
+      "notes/n.md": "---\nsource: own\n---\n# N\n",
+    }));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /amended_by: decisions\/2026-01-01-old\.md/);
+  }
+});
+
+test("an amends: without amended_by on the older decision fails, and the reverse", needsPython, () => {
+  let r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: active"),
+    "decisions/2026-02-01-new.md": decision("status: active\namends: decisions/2026-01-01-old.md"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /amends: decisions\/2026-02-01-new\.md/);
+  r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: active\namended_by: decisions/2026-02-01-new.md"),
+    "decisions/2026-02-01-new.md": decision("status: active"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /amended_by: decisions\/2026-01-01-old\.md/);
+});
+
+test("a supersedes: without superseded_by on the older decision fails", needsPython, () => {
+  const r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: active"),
+    "decisions/2026-02-01-new.md": decision("status: active\nsupersedes: decisions/2026-01-01-old.md"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /supersedes: decisions\/2026-02-01-new\.md/);
+});
+
+test("a decision amended twice lists both, inline or as a list", needsPython, () => {
+  for (const by of ["[decisions/2026-02-01-b.md, decisions/2026-03-01-c.md]",
+                    "\n  - decisions/2026-02-01-b.md\n  - decisions/2026-03-01-c.md"]) {
+    const r = lint(brain({
+      "decisions/2026-01-01-a.md": decision(`status: active\namended_by: ${by}`),
+      "decisions/2026-02-01-b.md": decision("status: active\namends: decisions/2026-01-01-a.md"),
+      "decisions/2026-03-01-c.md": decision("status: active\namends: decisions/2026-01-01-a.md"),
+    }));
+    assert.equal(r.code, 0, r.out);
+  }
+});
+
+test("a superseded pair pointing at each other passes, with quotes or ./ paths", needsPython, () => {
+  const r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: 'superseded'\nsuperseded_by: ./decisions/2026-02-01-new.md"),
+    "decisions/2026-02-01-new.md": decision("status: active\nsupersedes: \"decisions/2026-01-01-old.md\""),
+  }));
+  assert.equal(r.code, 0, r.out);
+});
+
+test("superseded_by without supersedes: back, or without its status, fails", needsPython, () => {
+  let r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: superseded\nsuperseded_by: decisions/2026-02-01-new.md"),
+    "decisions/2026-02-01-new.md": decision("status: active"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /superseded_by: decisions\/2026-01-01-old\.md names decisions\/2026-02-01-new\.md, which has no supersedes: back/);
+  r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: active\nsuperseded_by: decisions/2026-02-01-new.md"),
+    "decisions/2026-02-01-new.md": decision("status: active\nsupersedes: decisions/2026-01-01-old.md"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /superseded_by: decisions\/2026-01-01-old\.md is set, but its status isn't superseded/);
+  r = lint(brain({ "decisions/2026-01-01-old.md": decision("status: superseded") }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /superseded decision without an existing superseded_by: decisions\/2026-01-01-old\.md/);
+});
+
+test("a list with one entry that is no decision fails", needsPython, () => {
+  const r = lint(brain({
+    "decisions/2026-01-01-old.md": decision("status: superseded\nsuperseded_by: [decisions/2026-02-01-new.md, decisions/typo.md]"),
+    "decisions/2026-02-01-new.md": decision("status: active\nsupersedes: decisions/2026-01-01-old.md"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /names decisions\/typo\.md, which is no decision/);
+});
+
+test("a decision that names itself fails", needsPython, () => {
+  const r = lint(brain({
+    "decisions/2026-02-01-new.md": decision("status: active\namends: decisions/2026-02-01-new.md\namended_by: decisions/2026-02-01-new.md"),
+  }));
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /amends: decisions\/2026-02-01-new\.md names itself/);
+});

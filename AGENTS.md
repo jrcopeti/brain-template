@@ -18,11 +18,14 @@ knowledge stays in each project's own AGENTS.md and skills, never here.
 - Every note links the source it came from (`sources/…`, a URL, or `source: own` for a rule you decided yourself).
 - Every file you add gets one line in `index.md`, in its folder's section.
 - A changed decision is never deleted: mark the old one `status: superseded`,
-  set `superseded_by:` to the new file, and link back from the new one.
+  set `superseded_by:` to the new file, and `supersedes:` on the new one back to it. If only part of it
+  changed, amend it instead (`amended_by:`); unsure which, amend. The test is in the triage skill's rule 6.
 - When in doubt, don't create the note. A missing note can be written later; a junk note costs every agent.
 - Never store secrets: no keys, tokens, passwords, or personal data of others.
 
 ## Finish
 
 - Run the lint (`python3 skills/lint/scripts/lint.py`) after you change more than one file.
-- Always leave the repo pushed: `node sync.mjs` (commit, pull --rebase, push).
+- Always leave the repo pushed: `node sync.mjs` (commit, pull --rebase, push), on a machine with your git login.
+  Where an agent keeps the brain on a server, it never runs git: a host script copies its files into its own
+  clone and pushes.

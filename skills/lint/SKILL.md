@@ -21,6 +21,10 @@ It repairs index drift by itself and lists what is left. Then fix the rest:
 | `dead link in …` | find where the target moved (grep the name) and fix the link; if it is gone, remove the link |
 | `no source cited: …` | add the source link; a rule the user decided themselves gets `source: own` in its front matter; otherwise tell the user |
 | `superseded decision without …` | set `superseded_by:` to the replacing decision |
+| `<field>: … names …, which is no decision` | fix the link: a typo, a moved file, or a path outside `decisions/` |
+| `<field>: … names …, which has no …: back` | add the matching field on the decision it names: `amended_by:` ↔ `amends:`, `superseded_by:` ↔ `supersedes:` |
+| `… names itself` | the field points at its own file: point it at the other decision |
+| `superseded_by: … status isn't superseded` | set `status: superseded`, or, if only part changed, make it `amended_by:` |
 | `decision without a date` | add `date:` from the file name |
 | warnings (inbox, taste) | tell the user; don't delete taste entries |
 
