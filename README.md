@@ -22,6 +22,8 @@ Project-specific knowledge stays in each project (its AGENTS.md and skills). Thi
 what's true everywhere: your guidelines, your taste, your decisions, a short file per project,
 and the four skills that fill it, keep it true, and answer from it.
 
+This is a template: copy it with "Use this template" on GitHub and make the brain your own.
+
 ## What's inside
 
 | Path | What it holds |
