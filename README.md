@@ -16,7 +16,7 @@ and the four skills that fill it, keep it true, and answer from it.
 | `intents/` | what you want: one goal per file, with why and how you'll know it's met |
 | `inbox/` | new things land here; triage empties it |
 | `guidelines/` | how you build in every project; a rule you decided yourself has `source: own` in its front matter |
-| `decisions/` | one per file, dated; changed ones are marked superseded, never deleted |
+| `decisions/` | one per file, dated; changed ones are marked superseded (or amended, when only part changed), never deleted |
 | `projects/` | one short admin file per project |
 | `notes/` | everything else worth keeping, each with its source |
 | `sources/` | the originals; never edited |
