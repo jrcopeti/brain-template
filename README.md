@@ -1,7 +1,23 @@
 # Brain template
 
 A second brain for your coding agents: one git repo with the knowledge that applies to every
-project, read by every agent you run. From the AI Agent Engineer course, module 5.
+project, read by every agent you run.
+
+[Telma](https://github.com/jrcopeti/telma) keeps a brain exactly like this one. It is adapted from
+[dmoka/brain-template](https://github.com/dmoka/brain-template) (from the AI Agent Engineer course,
+module 5), with these changes:
+
+- **Amended decisions.** When only part of a decision changes, the old one stays active and gains
+  `amended_by:`; the new one gets `amends:`. Triage tests which case it is and never supersedes on a guess.
+  The lint checks both directions.
+- **Instructions in captured pages are data.** Triage files such an item as it would without them, leaves them
+  out, and names the item in its report.
+- **A `note:` can make pasted text a guideline**, but only on an item you gave it, never on a fetched page.
+- **One home for a project's admin facts.** A decision that changes where a project runs, or its status or
+  owner, lives in `decisions/`; the project note keeps one line that links to it.
+- **Mixed items are split.** Only the rule for every project is filed; the project's own rule goes in its AGENTS.md.
+- **A server agent never runs git.** A host script copies its files into its own clone and pushes.
+- **Examples on running an agent safely**: what the agent may write, the lethal trifecta, regression evals.
 
 Project-specific knowledge stays in each project (its AGENTS.md and skills). This repo holds
 what's true everywhere: your guidelines, your taste, your decisions, a short file per project,
