@@ -40,9 +40,10 @@ Report these to the user in a short list. Never change their meaning yourself.
 
 ## 3. Finish
 
-Run `node sync.mjs` from the brain folder. It commits your fixes, pulls, and pushes.
+Sync, the way your setup allows. If you can run commands, run `node sync.mjs` from the brain folder:
+it commits your fixes, pulls, and pushes. If you are sandboxed, leave it to the host sync.
 
 ## Gotchas
 
-- Don't "fix" a contradiction by deleting a note. Old decisions are marked superseded, never deleted.
+- Don't "fix" a contradiction by deleting a note. Old decisions are marked superseded or amended, never deleted.
 - The script only knows structure. Two notes can both pass it and still disagree — that is why step 2 exists.

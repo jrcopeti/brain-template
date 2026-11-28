@@ -28,6 +28,7 @@ Never say "nothing saved about that" from memory or from the index alone. Only a
 - **Confidence follows sources.** One captured link → "one saved, unverified". Several notes, or the user's own decision or guideline → firmer. Say which.
 - **Fresh beats stale.** Check the note's date (frontmatter, file name, or git log). Flag anything old enough that the topic likely moved: "written in January, may be stale".
 - **Superseded decisions stay superseded.** A decision with `status: superseded` is history: cite the one in `superseded_by:` as current, and mention the old one only as context.
+- **Amended decisions still stand, in part.** A decision with `amended_by:` is still valid except for the part its dated "Amended" line names: cite the one in `amended_by:` for that part and the old one for the rest, and say which part changed.
 - **Don't pad.** If the brain has one relevant sentence, the answer is one sentence plus its citation, not an essay that pretends depth.
 - **Never invent.** No claim without a note behind it. If you add your own view, label it as yours, outside the cited part.
 

@@ -45,7 +45,8 @@ Triage does the thinking capture skipped. Read `AGENTS.md` and `taste.md` first.
 
 - The inbox holds only its README.
 - Run the lint skill.
-- Run `node sync.mjs`.
+- Sync, the way your setup allows: run `node sync.mjs` from the brain folder, or, if you are
+  sandboxed, leave it to the host sync.
 
 ## Gotchas
 
