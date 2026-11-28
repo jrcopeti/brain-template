@@ -5,7 +5,7 @@ description: "Save a link, snippet, or decision into the brain inbox. Use when t
 
 # Capture
 
-Capture is fast and dumb. It writes one file into `inbox/`, runs `node sync.mjs`, and stops. It never sorts, summarizes into notes, or edits existing notes — that is triage's job.
+Capture is fast and dumb. It writes one file into `inbox/`, syncs it, and stops. It never sorts, summarizes into notes, or edits existing notes — that is triage's job. The one thing it writes outside `inbox/` is a taste line, in `taste.md`.
 
 ## Save something
 
@@ -21,8 +21,10 @@ Capture is fast and dumb. It writes one file into `inbox/`, runs `node sync.mjs`
      --source-file inbox/.source --body-file inbox/.body --note "<the user's reason, verbatim>"
    ```
    The script deletes both draft files after it writes the item.
-3. Run `node sync.mjs` from the brain folder. It commits the new item, pulls, and pushes.
-4. Reply in one line: `saved to inbox (<path>)`. If sync.mjs says "NOT pushed", add that to the reply.
+3. Sync, the way your setup allows:
+   - If you can run commands, run `node sync.mjs` from the brain folder. It commits the new item, pulls, and pushes.
+   - If you are sandboxed (no shell, or the brain is mounted read-only), skip it. The host runs its own sync and picks the item up.
+4. Reply in one line: `saved to inbox (<path>)`. If sync.mjs says "NOT pushed", add that to the reply. If you are sandboxed, add that the host sync will push it.
 
 ## Capture on your own
 
@@ -30,13 +32,29 @@ At the end of a session, capture what would otherwise be lost: a decision and it
 
 ## Taste entries
 
-When the user corrects you with a reason, append one line to `taste.md` in the right section:
-`- <the rule> — because <their reason> (YYYY-MM-DD)`. Use their words.
-No reason given? Ask one question ("why?") first. No reason, no entry.
-Then run `node sync.mjs` from the brain folder.
+When the user corrects you with a reason, the taste line is
+`- <the rule> — because <their reason> (YYYY-MM-DD)`, placed in the right section of `taste.md`
+(`## Never` / `## Prefer` / `## Tie-breakers`). Use their words. No reason given? Ask one question
+("why?") first. No reason, no entry.
+
+`taste.md` is a rule file, but it is the one you can write: insert the line under the right section
+of your copy of it. A change to it never goes straight to main: the sync puts it on a branch for a PR
+the owner merges. So write the line
+in `taste.md`, not in `inbox/`, sync as in step 3 of Save something (`node sync.mjs`, or the host sync
+if you are sandboxed), and say in the reply that it is waiting for the owner's review. If sync.mjs
+says "NOT pushed", add that to the reply. Or just say that the host sync will push it if you are sandboxed.
 
 ## Gotchas
 
+- Capture is triggered by the owner asking to save something, not by a good conversation. In
+  casual chat, don't offer to file things or write up what was talked about — "just chatting"
+  means answer only, no note.
 - Don't create notes or edit the index here. Everything goes through `inbox/`, so nothing skips triage.
+  The one exception is a taste line, which goes into `taste.md` (see Taste entries).
+- Rule files — `AGENTS.md`, `CLAUDE.md`, `skills/` — are read-only here and their changes go
+  through a branch + PR the owner merges. When one should change, capture the proposed edit (exact text,
+  location, reason) into `inbox/` and say it needs a PR. `taste.md` is the exception (see Taste
+  entries). Never try to write the others: the write fails (read-only mount) or, worse, would land on
+  main unreviewed.
 - Don't paste secrets or other people's personal data into the brain, even when the user forwards them. Keep the link, drop the secret.
 - Screenshots: save the image file into `inbox/` next to the item and describe what it shows in the item's text.
